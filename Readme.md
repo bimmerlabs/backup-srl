@@ -1,7 +1,7 @@
 # Backup-Srl
 BUP memory module - full replacement for sega_bup.h
 
-Note: this is an "experimental" build.  It is functional, but there may be bugs or imcomplete features.
+```Note: this is an "experimental" build.  It is functional, but there may be bugs or imcomplete features.```
 
 Currently, it does not support the FDD or folders.
 
