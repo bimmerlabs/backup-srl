@@ -18,6 +18,6 @@ MODULES_EXTRA = smpc backup
 Include it in your code:
 ```
 #include <backup.hpp>
-SRL::Backup;
+using namespace SRL::Backup;
 ```
 See the example in `/Samples/Backup Memory` for use
