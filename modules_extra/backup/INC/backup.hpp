@@ -122,7 +122,7 @@ namespace SRL::Backup {
         using BupDir = int32_t (*)(uint32_t device, uint8_t *filename, uint16_t tbsize, BupWriteTable *table);
         using BupVerify = int32_t (*)(uint32_t device, uint8_t *filename, uint8_t *data);
         using BupGetDate = void (*)(uint32_t device, BupDate *table);
-        using BupSetDate = int32_t (*)(BupDate *table);
+        using BupSetDate = uint32_t  (*)(BupDate *table);
 
         template<typename T>
         static auto GetBupFunction(uint32_t offset)
@@ -173,11 +173,8 @@ namespace SRL::Backup {
             // (which is in a different order from BUP)
             // I don't want to do that.  The user can just set the language.
             WriteTable.language = file->Language;
-                                    // get date (check implementation in jo engine)
-            // jo engine complicates this for no reason
+                                    // jo engine complicates this for no reason
             DateTime time = DateTime::Now();
-            // doesn't currently work, need to figure out how to get SetDate to take SRL::Types::DateTime   
-            // WriteTable.date = SetDate(time.ToBackupUnitDate());
             BupDate dateTable
             {
                 static_cast<uint8_t>(time.Year() - 1980),
@@ -187,7 +184,7 @@ namespace SRL::Backup {
                 time.Minute(),
                 time.Week()
             };
-            WriteTable.date = SetDate(&dateTable);            
+            WriteTable.date = SetDate(&dateTable);
             
             WriteTable.datasize = file->Datasize; 
             // WriteTable.blocksize = file->Datasize * 64;  // not in sample so leave it out?
@@ -218,7 +215,7 @@ namespace SRL::Backup {
         // Compresses the date and time data into the BupDate table
         // Prepares date for writetable
         // returns nothing
-        static uint8_t SetDate(BupDate *table)
+        static uint32_t  SetDate(BupDate *table)
         {
             auto func = GetBupFunction<BupSetDate>(40);
             return func(table);
