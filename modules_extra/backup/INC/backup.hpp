@@ -82,7 +82,6 @@ namespace SRL::Backup {
     // this is different from BupWriteTable, because it includes *Data
     struct BupFile
     {
-        // make array one larger than the max length to include null terminator
         unsigned char Name[MAX_FILENAME_LENGTH + 1] = {};
         unsigned char Comment[MAX_COMMENT_LENGTH + 1] = {};
         void *Data = nullptr;
@@ -90,6 +89,7 @@ namespace SRL::Backup {
         uint8_t  Language;
     };
 
+    // could potentially replace with SRL::Types::DateTime::BupDate
     struct BupDate {
         uint8_t year, month, day;
         uint8_t hour, minute, weekday;
@@ -128,7 +128,7 @@ namespace SRL::Backup {
         using BupDelete  = int32_t (*)(uint32_t device, uint8_t *filename);
         using BupDir     = int32_t (*)(uint32_t device, uint8_t *filename, uint16_t tbsize, BupWriteTable *table);
         using BupVerify  = int32_t (*)(uint32_t device, uint8_t *filename, uint8_t *data);
-        using BupGetDate = void   (*)(uint32_t device, BupDate *table);
+        using BupGetDate = void   (*)(uint32_t date, BupDate *table);
         using BupSetDate = uint32_t (*)(BupDate *table);
 
         // Private Helper Functions / pointers
@@ -182,9 +182,10 @@ namespace SRL::Backup {
             WriteTable.language = file->Language;
             // jo engine complicates this for no reason
             DateTime time = DateTime::Now();
+            // BupDate dateTable = time.ToBackupUnitDate(); // works, but now BupDate is not part of the BUP module..
             BupDate dateTable
             {
-                static_cast<uint8_t>(time.Year() - 1980),
+                static_cast<uint8_t>(time.Year() - DateTime::BaseYear),
                 time.Month(),
                 time.Day(),
                 time.Hour(),
@@ -237,10 +238,10 @@ namespace SRL::Backup {
         // Expands the date and time data in the BupDate table
         // Get backup device last edit date
         // returns nothing
-        static void GetDate(BupDevice device, BupDate *table)
+        static void GetDate(uint32_t date, BupDate *table)
         {
             auto func = GetBupFunction<BupGetDate>(36);
-            func(device, table);
+            func(date, table);
         }
 
         // Compresses the date and time data into the BupDate table
@@ -421,6 +422,7 @@ namespace SRL::Backup {
             }
             return false;
         }
+        
         static bool ReturnStatus(BupDevice device)
         {
             if (!Initialized) return false;
@@ -428,6 +430,7 @@ namespace SRL::Backup {
             BupState[device].isMounted = (BupState[device].Status == Success); // true or false
             return BupState[device].isMounted;
         }
+        
         // Gets directory information for one or more files from the BUP device
         // Pass filename prefix (or "" for all files) and an array of BupWriteTable
         // Returns total matching files found
@@ -448,6 +451,22 @@ namespace SRL::Backup {
                 // // dirList[i].filename, dirList[i].datasize, dirList[i].date are now populated
             // }
         // }
+        
+        // Expands the raw backup timestamp into SRL::Types::DateTime
+        static DateTime GetFileDateTime(uint32_t rawDate)
+        {
+            BupDate dateTable{};
+            GetDate(rawDate, &dateTable);
+            return DateTime(
+                0, // seconds
+                dateTable.minute,
+                dateTable.hour,
+                dateTable.day,
+                dateTable.weekday,
+                dateTable.month,
+                static_cast<uint16_t>(dateTable.year + DateTime::BaseYear)
+            );
+        }
 
         // Verifies data written to the BUP device (checksum)
         // returns BupStatusTable
