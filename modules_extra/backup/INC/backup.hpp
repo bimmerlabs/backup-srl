@@ -89,11 +89,11 @@ namespace SRL::Backup {
         uint8_t  Language;
     };
 
-    // could potentially replace with SRL::Types::DateTime::BupDate
-    struct BupDate {
-        uint8_t year, month, day;
-        uint8_t hour, minute, weekday;
-    };
+    // use SRL::Types::DateTime::BupDate instead
+    // struct BupDate {
+        // uint8_t year, month, day;
+        // uint8_t hour, minute, weekday;
+    // };
 
     // Device struct
     struct BupDeviceState {
@@ -182,16 +182,17 @@ namespace SRL::Backup {
             WriteTable.language = file->Language;
             // jo engine complicates this for no reason
             DateTime time = DateTime::Now();
-            // BupDate dateTable = time.ToBackupUnitDate(); // works, but now BupDate is not part of the BUP module..
-            BupDate dateTable
-            {
-                static_cast<uint8_t>(time.Year() - DateTime::BaseYear),
-                time.Month(),
-                time.Day(),
-                time.Hour(),
-                time.Minute(),
-                time.Week()
-            };
+            // use SRL::Types::DateTime::BupDate instead
+            BupDate dateTable = time.ToBackupUnitDate();
+            // BupDate dateTable
+            // {
+                // static_cast<uint8_t>(time.Year() - DateTime::BaseYear),
+                // time.Month(),
+                // time.Day(),
+                // time.Hour(),
+                // time.Minute(),
+                // time.Week()
+            // };
             WriteTable.date = SetDate(&dateTable);
 
             WriteTable.datasize = file->Datasize;
@@ -455,17 +456,9 @@ namespace SRL::Backup {
         // Expands the raw backup timestamp into SRL::Types::DateTime
         static DateTime GetFileDateTime(uint32_t rawDate)
         {
-            BupDate dateTable{};
+            BupDate dateTable{}; 
             GetDate(rawDate, &dateTable);
-            return DateTime(
-                0, // seconds
-                dateTable.minute,
-                dateTable.hour,
-                dateTable.day,
-                dateTable.weekday,
-                dateTable.month,
-                static_cast<uint16_t>(dateTable.year + DateTime::BaseYear)
-            );
+            return DateTime(&dateTable); // use SRL::Types::DateTime::BupDate instead
         }
 
         // Verifies data written to the BUP device (checksum)
