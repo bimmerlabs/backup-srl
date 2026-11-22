@@ -1,9 +1,9 @@
 # Backup-Srl
 BUP memory module - full replacement for sega_bup.h
 
-```Note: this is an "experimental" build.  It is functional, but there may be bugs or imcomplete features.```
-
-Currently, it does not support the FDD or folders.
+New: Now supports the FDD (including partitions) and file searching!
+(Unfortunately, I don't have a FDD, so I was only able to test in an emulator)
+Also fixed some bugs
 
 Also requires the SMPC module:
 * https://github.com/bimmerlabs/smpc-SRL
